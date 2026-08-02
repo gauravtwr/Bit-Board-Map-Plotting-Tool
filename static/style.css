@@ -141,8 +141,14 @@ input[type="file"] {
     margin-top: 0;
 }
 
+.table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
 table {
     width: 100%;
+    min-width: 420px;
     border-collapse: collapse;
     font-size: 0.85rem;
 }
@@ -171,4 +177,48 @@ progress {
     overflow-y: auto;
     font-size: 0.82rem;
     white-space: pre-wrap;
+}
+
+@media (max-width: 640px) {
+    body {
+        padding: 14px;
+    }
+
+    .card {
+        padding: 14px 16px;
+    }
+
+    .site-header {
+        gap: 10px;
+    }
+
+    .logo-mark {
+        font-size: 1.6rem;
+    }
+
+    h1 {
+        font-size: 1.25rem;
+    }
+
+    .row {
+        gap: 8px;
+    }
+
+    .row > button,
+    .row > .file-btn {
+        flex: 1 1 auto;
+        text-align: center;
+    }
+
+    input[type="text"] {
+        min-width: 0;
+        width: 100%;
+    }
+
+    button,
+    .file-btn,
+    select,
+    input[type="number"] {
+        min-height: 44px;
+    }
 }
