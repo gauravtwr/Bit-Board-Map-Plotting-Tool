@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+_test_workspace/
+.DS_Store
+Thumbs.db

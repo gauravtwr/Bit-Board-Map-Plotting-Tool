@@ -1,0 +1,134 @@
+:root {
+    color-scheme: light dark;
+}
+
+body {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    margin: 0;
+    padding: 24px;
+    background: #f4f5f7;
+    color: #1a1a1a;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background: #1b1c1f;
+        color: #e8e8e8;
+    }
+    .card {
+        background: #26272b !important;
+        border-color: #38393e !important;
+    }
+    input, select, table {
+        background: #1f2023;
+        color: #e8e8e8;
+        border-color: #444;
+    }
+    #log {
+        background: #111214 !important;
+        color: #ddd !important;
+    }
+}
+
+.app {
+    max-width: 860px;
+    margin: 0 auto;
+}
+
+h1 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+}
+
+.card {
+    background: #fff;
+    border: 1px solid #e2e2e6;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+}
+
+.card h2 {
+    font-size: 1rem;
+    margin: 0 0 12px 0;
+}
+
+.row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+input[type="text"], input[type="number"], select {
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+input[type="text"] {
+    flex: 1;
+    min-width: 260px;
+}
+
+button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    background: #2563eb;
+    color: white;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+button:disabled {
+    background: #9aa4b2;
+    cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+    background: #1d4ed8;
+}
+
+label {
+    font-size: 0.9rem;
+}
+
+.hint {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 0;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+th, td {
+    text-align: left;
+    padding: 6px 8px;
+    border-bottom: 1px solid #eee;
+}
+
+td input {
+    width: 100px;
+}
+
+progress {
+    flex: 1;
+    height: 18px;
+}
+
+#log {
+    background: #0f1115;
+    color: #d8f5d8;
+    padding: 12px;
+    border-radius: 8px;
+    max-height: 240px;
+    overflow-y: auto;
+    font-size: 0.82rem;
+    white-space: pre-wrap;
+}

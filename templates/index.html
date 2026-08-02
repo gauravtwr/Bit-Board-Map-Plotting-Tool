@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Image Snapshot - Map Capture Tool</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="app">
+    <h1>Image Snapshot &ndash; Map Capture Tool</h1>
+
+    <section class="card">
+        <h2>1. Choose upload mode</h2>
+        <label><input type="radio" name="mode" value="single" checked> Single image</label>
+        <label><input type="radio" name="mode" value="bulk"> Bulk upload (folder)</label>
+    </section>
+
+    <section class="card">
+        <h2>2. Select image or folder</h2>
+        <div class="row">
+            <input type="text" id="source-path" readonly placeholder="Nothing selected yet">
+            <button id="browse-source-btn">Browse...</button>
+        </div>
+    </section>
+
+    <section class="card" id="items-section" hidden>
+        <h2>Detected images</h2>
+        <p class="hint">
+            Images without GPS location data (common with WhatsApp photos, screenshots,
+            or re-saved images) need coordinates entered manually as decimal degrees,
+            e.g. <code>32.7266</code> / <code>74.8570</code>. Leave both blank to skip that image.
+        </p>
+        <table id="items-table">
+            <thead>
+                <tr><th>File</th><th>Latitude</th><th>Longitude</th><th>Source</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
+
+    <section class="card">
+        <h2>3. Export options</h2>
+        <div class="row">
+            <label>Image type:
+                <select id="export-format">
+                    <option value="PNG">PNG</option>
+                    <option value="SVG">SVG</option>
+                </select>
+            </label>
+            <label>Zoom level:
+                <input type="number" id="zoom" min="1" max="19" value="15">
+            </label>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>4. Choose where to save captured maps</h2>
+        <div class="row">
+            <input type="text" id="output-path" readonly placeholder="Nothing selected yet">
+            <button id="browse-output-btn">Browse...</button>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="row">
+            <button id="capture-btn" disabled>Capture Map(s)</button>
+            <progress id="progress" value="0" max="1"></progress>
+        </div>
+        <pre id="log"></pre>
+    </section>
+</div>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
