@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: image-snapshot-map-capture
+    name: ImagetoMap
     env: python
     plan: free
     buildCommand: pip install -r requirements.txt
