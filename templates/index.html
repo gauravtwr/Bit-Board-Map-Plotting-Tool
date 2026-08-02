@@ -3,14 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Image Snapshot - Map Capture Tool</title>
+<title>ImagetoMap</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 <div class="app">
-    <h1>Image Snapshot &ndash; Map Capture Tool</h1>
-    <p class="hint">Runs entirely through your browser &mdash; images are read once to find GPS
-        data and never stored on the server. Captured maps come back as a direct download.</p>
+    <header class="site-header">
+        <span class="logo-mark">&#128205;</span>
+        <div>
+            <h1>ImagetoMap</h1>
+            <p class="hint">Turn a photo's GPS location into a downloadable map snapshot &mdash;
+                runs entirely through your browser, nothing is stored on the server.</p>
+        </div>
+    </header>
 
     <section class="card">
         <h2>1. Choose upload mode</h2>
