@@ -1,12 +1,12 @@
 const state = {
-    items: [],
-    outputPath: null,
+    items: [], // { name, lat, lon }
 };
 
-const sourcePathEl = document.getElementById("source-path");
-const outputPathEl = document.getElementById("output-path");
-const browseSourceBtn = document.getElementById("browse-source-btn");
-const browseOutputBtn = document.getElementById("browse-output-btn");
+const singleSection = document.getElementById("select-single");
+const bulkSection = document.getElementById("select-bulk");
+const fileSingle = document.getElementById("file-single");
+const fileBulkFiles = document.getElementById("file-bulk-files");
+const fileBulkFolder = document.getElementById("file-bulk-folder");
 const captureBtn = document.getElementById("capture-btn");
 const itemsSection = document.getElementById("items-section");
 const itemsTableBody = document.querySelector("#items-table tbody");
@@ -22,70 +22,55 @@ function logLine(text) {
     logEl.scrollTop = logEl.scrollHeight;
 }
 
-function updateCaptureEnabled() {
-    captureBtn.disabled = !(state.items.length > 0 && state.outputPath);
+function resetItems() {
+    state.items = [];
+    itemsSection.hidden = true;
+    itemsTableBody.innerHTML = "";
+    captureBtn.disabled = true;
 }
 
 document.querySelectorAll('input[name="mode"]').forEach((el) => {
     el.addEventListener("change", () => {
-        sourcePathEl.value = "";
-        state.items = [];
-        itemsSection.hidden = true;
-        itemsTableBody.innerHTML = "";
-        updateCaptureEnabled();
+        const mode = currentMode();
+        singleSection.hidden = mode !== "single";
+        bulkSection.hidden = mode !== "bulk";
+        fileSingle.value = "";
+        fileBulkFiles.value = "";
+        fileBulkFolder.value = "";
+        resetItems();
     });
 });
 
-browseSourceBtn.addEventListener("click", async () => {
-    const mode = currentMode();
-    const endpoint = mode === "single" ? "/api/pick-file" : "/api/pick-folder";
-    const body = mode === "bulk" ? JSON.stringify({ title: "Select a folder of images" }) : undefined;
-
-    const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: body || JSON.stringify({}),
-    });
-    const data = await res.json();
-    if (!data.path) return;
-
-    sourcePathEl.value = data.path;
-    await scanSource(mode, data.path);
+fileSingle.addEventListener("change", () => {
+    if (fileSingle.files.length) scanFiles([fileSingle.files[0]]);
 });
 
-browseOutputBtn.addEventListener("click", async () => {
-    const res = await fetch("/api/pick-folder", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: "Select output folder" }),
-    });
-    const data = await res.json();
-    if (!data.path) return;
-    outputPathEl.value = data.path;
-    state.outputPath = data.path;
-    updateCaptureEnabled();
+fileBulkFiles.addEventListener("change", () => {
+    if (fileBulkFiles.files.length) scanFiles(Array.from(fileBulkFiles.files));
 });
 
-async function scanSource(mode, path) {
-    const res = await fetch("/api/scan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode, path }),
-    });
+fileBulkFolder.addEventListener("change", () => {
+    if (fileBulkFolder.files.length) scanFiles(Array.from(fileBulkFolder.files));
+});
+
+async function scanFiles(files) {
+    const formData = new FormData();
+    files.forEach((file) => formData.append("images", file, file.name));
+
+    logEl.textContent = "";
+    const res = await fetch("/api/scan", { method: "POST", body: formData });
     const data = await res.json();
 
     if (data.error) {
         alert(data.error);
-        state.items = [];
-        itemsSection.hidden = true;
-        updateCaptureEnabled();
+        resetItems();
         return;
     }
 
-    state.items = data.items;
+    state.items = data.items.map((item) => ({ name: item.name, lat: item.lat, lon: item.lon }));
     renderItemsTable();
     itemsSection.hidden = state.items.length === 0;
-    updateCaptureEnabled();
+    captureBtn.disabled = state.items.length === 0;
 }
 
 function renderItemsTable() {
@@ -123,16 +108,17 @@ function renderItemsTable() {
     });
 }
 
+function filenameFromContentDisposition(header, fallback) {
+    if (!header) return fallback;
+    const match = header.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i);
+    return match ? decodeURIComponent(match[1]) : fallback;
+}
+
 captureBtn.addEventListener("click", async () => {
-    if (!state.outputPath || state.items.length === 0) return;
+    if (state.items.length === 0) return;
 
     const format = document.getElementById("export-format").value;
     const zoom = document.getElementById("zoom").value;
-
-    logEl.textContent = "";
-    progressEl.max = state.items.length;
-    progressEl.value = 0;
-    captureBtn.disabled = true;
 
     const latInputs = document.querySelectorAll('input[data-field="lat"]');
     const lonInputs = document.querySelectorAll('input[data-field="lon"]');
@@ -143,39 +129,61 @@ captureBtn.addEventListener("click", async () => {
         state.items[el.dataset.index].lon = el.value.trim() === "" ? null : parseFloat(el.value);
     });
 
-    let done = 0, skipped = 0, errors = 0;
+    logEl.textContent = "";
+    progressEl.removeAttribute("value");
+    captureBtn.disabled = true;
+    logLine("Capturing map area(s)... this can take a few seconds per image.");
 
-    for (const item of state.items) {
-        const res = await fetch("/api/capture-one", {
+    try {
+        const res = await fetch("/api/capture-batch", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                path: item.path,
-                lat: item.lat,
-                lon: item.lon,
-                output_dir: state.outputPath,
-                format,
-                zoom,
-            }),
+            body: JSON.stringify({ items: state.items, format, zoom }),
         });
-        const result = await res.json();
 
-        if (result.error) {
-            logLine(`[ERROR] ${item.name} - ${result.error}`);
-            errors++;
-        } else if (result.status === "done") {
-            logLine(`[DONE] ${result.name} -> ${result.output_path.split(/[\\/]/).pop()}`);
-            done++;
-        } else if (result.status === "skipped") {
-            logLine(`[SKIPPED] ${result.name} - ${result.message}`);
-            skipped++;
-        } else {
-            logLine(`[ERROR] ${result.name} - ${result.message}`);
-            errors++;
+        const resultsHeader = res.headers.get("X-Capture-Results");
+        let summary = null;
+        if (resultsHeader) {
+            summary = JSON.parse(decodeURIComponent(escape(atob(resultsHeader))));
         }
-        progressEl.value++;
-    }
 
-    logLine(`\nFinished: ${done} captured, ${skipped} skipped, ${errors} errors.`);
-    captureBtn.disabled = false;
+        if (!res.ok) {
+            const errBody = await res.json().catch(() => ({}));
+            logLine(`\n[ERROR] ${errBody.error || "Capture failed."}`);
+            if (summary) logSummary(summary);
+            return;
+        }
+
+        const blob = await res.blob();
+        const contentDisposition = res.headers.get("Content-Disposition");
+        const defaultName = state.items.length === 1 ? "map-capture" : "bit-and-board-maps.zip";
+        const filename = filenameFromContentDisposition(contentDisposition, defaultName);
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        logEl.textContent = "";
+        if (summary) logSummary(summary);
+        logLine(`\nDownloaded: ${filename}`);
+    } catch (err) {
+        logLine(`\n[ERROR] ${err.message}`);
+    } finally {
+        progressEl.value = 1;
+        progressEl.max = 1;
+        captureBtn.disabled = false;
+    }
 });
+
+function logSummary(summary) {
+    summary.items.forEach((item) => {
+        const tag = item.status === "done" ? "DONE" : item.status === "skipped" ? "SKIPPED" : "ERROR";
+        logLine(`[${tag}] ${item.name} - ${item.message}`);
+    });
+    logLine(`\nFinished: ${summary.done} captured, ${summary.skipped} skipped, ${summary.errors} errors.`);
+}

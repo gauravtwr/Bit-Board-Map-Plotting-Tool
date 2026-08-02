@@ -14,10 +14,14 @@ def _dms_to_degrees(dms):
     return float(degrees) + float(minutes) / 60.0 + float(seconds) / 3600.0
 
 
-def extract_gps(image_path):
-    """Return (lat, lon) as floats, or None if the image has no GPS EXIF data."""
+def extract_gps(image_source):
+    """Return (lat, lon) as floats, or None if the image has no GPS EXIF data.
+
+    image_source may be a filesystem path or any file-like object (e.g. an
+    uploaded file's stream) -- Pillow's Image.open accepts either.
+    """
     try:
-        with Image.open(image_path) as img:
+        with Image.open(image_source) as img:
             exif = img.getexif()
             gps_ifd = exif.get_ifd(GPS_IFD_TAG)
     except Exception:

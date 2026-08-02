@@ -1,4 +1,4 @@
-"""Render a map snapshot centered on a coordinate and save it as PNG or SVG."""
+"""Render a map snapshot centered on a coordinate and encode it as PNG or SVG."""
 
 import base64
 import io
@@ -13,7 +13,7 @@ TILE_REQUEST_TIMEOUT_SECONDS = 10
 # clients -- staticmap's default header ("User-Agent: StaticMap") gets
 # flagged as exactly that, which is what caused requests to stall.
 # See: https://operations.osmfoundation.org/policies/tiles/
-TILE_REQUEST_HEADERS = {"User-Agent": "ImageSnapshotMapCapture/1.0 (local map-capture tool)"}
+TILE_REQUEST_HEADERS = {"User-Agent": "ImageSnapshotMapCapture/1.0 (web map-capture tool)"}
 
 
 def capture_map_image(lat, lon, zoom=15, width=800, height=600):
@@ -32,11 +32,13 @@ def capture_map_image(lat, lon, zoom=15, width=800, height=600):
     return renderer.render(zoom=zoom, center=[lon, lat])
 
 
-def save_png(image, output_path):
-    image.save(output_path, "PNG")
+def png_bytes(image):
+    buffer = io.BytesIO()
+    image.save(buffer, "PNG")
+    return buffer.getvalue()
 
 
-def save_svg(image, output_path, width, height):
+def svg_bytes(image, width, height):
     """Wrap the rendered raster map tile in an SVG container.
 
     OpenStreetMap tiles are raster images, so there is no true vector map
@@ -44,10 +46,7 @@ def save_svg(image, output_path, width, height):
     SVG file, which keeps the .svg extension/format the user asked for
     while still being a valid, viewable file.
     """
-    buffer = io.BytesIO()
-    image.save(buffer, "PNG")
-    encoded = base64.b64encode(buffer.getvalue()).decode("ascii")
-
+    encoded = base64.b64encode(png_bytes(image)).decode("ascii")
     svg = (
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
         f'viewBox="0 0 {width} {height}">'
@@ -55,6 +54,4 @@ def save_svg(image, output_path, width, height):
         f'href="data:image/png;base64,{encoded}"/>'
         f"</svg>"
     )
-
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write(svg)
+    return svg.encode("utf-8")

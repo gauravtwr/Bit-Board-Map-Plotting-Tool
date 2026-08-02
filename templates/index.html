@@ -2,25 +2,39 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Image Snapshot - Map Capture Tool</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 <div class="app">
     <h1>Image Snapshot &ndash; Map Capture Tool</h1>
+    <p class="hint">Runs entirely through your browser &mdash; images are read once to find GPS
+        data and never stored on the server. Captured maps come back as a direct download.</p>
 
     <section class="card">
         <h2>1. Choose upload mode</h2>
         <label><input type="radio" name="mode" value="single" checked> Single image</label>
-        <label><input type="radio" name="mode" value="bulk"> Bulk upload (folder)</label>
+        <label><input type="radio" name="mode" value="bulk"> Bulk upload</label>
     </section>
 
-    <section class="card">
-        <h2>2. Select image or folder</h2>
+    <section class="card" id="select-single">
+        <h2>2. Select an image</h2>
+        <input type="file" id="file-single" accept="image/*">
+    </section>
+
+    <section class="card" id="select-bulk" hidden>
+        <h2>2. Select images</h2>
         <div class="row">
-            <input type="text" id="source-path" readonly placeholder="Nothing selected yet">
-            <button id="browse-source-btn">Browse...</button>
+            <label class="file-btn">Select files...
+                <input type="file" id="file-bulk-files" accept="image/*" multiple>
+            </label>
+            <label class="file-btn">Select a folder...
+                <input type="file" id="file-bulk-folder" webkitdirectory multiple>
+            </label>
         </div>
+        <p class="hint">Folder selection is supported in Chrome and Edge. If your browser
+            doesn't support it, use "Select files..." and multi-select instead.</p>
     </section>
 
     <section class="card" id="items-section" hidden>
@@ -54,18 +68,11 @@
     </section>
 
     <section class="card">
-        <h2>4. Choose where to save captured maps</h2>
         <div class="row">
-            <input type="text" id="output-path" readonly placeholder="Nothing selected yet">
-            <button id="browse-output-btn">Browse...</button>
-        </div>
-    </section>
-
-    <section class="card">
-        <div class="row">
-            <button id="capture-btn" disabled>Capture Map(s)</button>
+            <button id="capture-btn" disabled>Capture &amp; Download</button>
             <progress id="progress" value="0" max="1"></progress>
         </div>
+        <p class="hint">Bulk uploads download as a single ZIP file. A single image downloads directly.</p>
         <pre id="log"></pre>
     </section>
 </div>

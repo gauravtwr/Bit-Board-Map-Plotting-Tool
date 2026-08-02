@@ -95,6 +95,29 @@ label {
     font-size: 0.9rem;
 }
 
+.file-btn {
+    position: relative;
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 6px;
+    background: #2563eb;
+    color: white;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+.file-btn:hover { background: #1d4ed8; }
+.file-btn input[type="file"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    opacity: 0;
+}
+
+input[type="file"] {
+    font-size: 0.88rem;
+}
+
 .hint {
     font-size: 0.85rem;
     color: #666;
