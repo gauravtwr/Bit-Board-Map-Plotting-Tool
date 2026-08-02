@@ -72,3 +72,22 @@ real deployment, run it behind a production WSGI server instead, e.g.:
 pip install gunicorn
 gunicorn -w 2 -b 0.0.0.0:$PORT app:app
 ```
+
+#### Deploy to Render (free)
+
+This repo includes a [`render.yaml`](render.yaml) blueprint, so Render can
+provision everything automatically:
+
+1. Go to [dashboard.render.com](https://dashboard.render.com) and sign in
+   (GitHub login is easiest).
+2. **New +** -> **Blueprint**, then pick this repository. Render reads
+   `render.yaml` and pre-fills the service (Python, free plan, build/start
+   commands) -- just click **Apply**.
+3. Wait for the first build to finish, then open the `.onrender.com` URL
+   Render gives you.
+
+The free tier spins down after 15 minutes of inactivity and takes ~30
+seconds to wake up on the next visit -- normal for a low-traffic tool, no
+action needed.
+
+Every subsequent `git push` to `main` auto-redeploys.

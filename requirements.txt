@@ -2,3 +2,4 @@ Flask
 Pillow
 staticmap
 requests
+gunicorn
